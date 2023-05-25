@@ -17,11 +17,11 @@ class Drone:
         pass
 
     @icontract.ensure(lambda self,result:result>0*ureg.second)
-    def get_autonomy(self):
+    def get_autonomy(self):     #recupere le temps d'autonomie du drone
         pass
-    def get_plan_livraison(self):
+    def get_plan_livraison(self): # recupere le chemin a suivre pour les livraisons de pilule
         pass
-    def get_etat_mission(self):
+    def get_etat_mission(self):  # les zones delivrees, les zones non delivrees, echecs de livraison
         pass
 
 class Etat:
@@ -31,12 +31,14 @@ class Etat:
 class IODeliv:
     def __init__(self):
         pass
-
+    def etat_mission(self):  #transmet l'etat de la mission a l'etat
+        pass
 
 class Operateur_drone:
     def __init__(self, num_ope):
         self.num_ope=num_ope
-        
+        pass
+    def enregistre(self):   #l'operateur doit s'enregistrer chez IODeliv
         pass
 
 class Zone:
