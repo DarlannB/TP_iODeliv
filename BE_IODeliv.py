@@ -17,6 +17,7 @@ class Drone:
         pass
 
     @icontract.ensure(lambda self,result:result>0*ureg.second)
+    
     def get_autonomy(self):     #recupere le temps d'autonomie du drone
         pass
     def get_plan_livraison(self): # recupere le chemin a suivre pour les livraisons de pilule
