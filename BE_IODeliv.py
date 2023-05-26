@@ -33,8 +33,6 @@ class Drone:
         pass
     def get_plan_livraison(self): # recupere le chemin a suivre pour les livraisons de pilule
         pass
-    def get_etat_mission(self):
-        pass
 
 class Etat:
     def __init__(self):
