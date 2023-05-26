@@ -110,9 +110,6 @@ livraison_pastilles(z,d)
 
 
 
-
-
-
 # APPORT PERSONNEL :) utilité : debut prblm optimisation sous contraintes
 """def DistanceCalculator(Zone,Drone):
     X1=Zone.x
