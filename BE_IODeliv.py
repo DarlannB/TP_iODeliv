@@ -3,21 +3,26 @@ import pint
 import icontract
 import math
 
+currency_reg="""
+kilogram=[currency]
+"""
+
 ureg = pint.UnitRegistry()
+creg=pint.UnitRegistry(currency_reg.split('\n'))
 def assert_compatible_with(a,b):
    a.to(b.units) 
 
+@icontract.require(lambda charge_utile:charge_utile>=0)
 class Drone:
 
     num_drone:int
     charge_utile:int #nombre de pastilles emport
     autonomie: pint.Quantity=0*ureg.second #autonomie en secondes
     statut :bool #a la base=0 en vol=1
-    #coordonnee_depart
-    x:float
+    x:float#coordonnee_depart
     y:float
 
-    def __init__(self, num_drone:int, charge_utile:int, autonomie: pint.Quantity,statut :bool,x:float,y:float):
+    def __init__(self, num_drone:int, charge_utile:int, autonomie:pint.Quantity,statut :bool,x:float,y:float):
         self.num_drone=num_drone
         self.charge_utile=charge_utile
         self.autonomie=autonomie
@@ -27,7 +32,7 @@ class Drone:
         statut=0
         pass
     
-    @icontract.ensure(lambda self,result:result>0*ureg.second)
+    @icontract.ensure(lambda autonomie:autonomie>0*ureg.second)
     
     def get_autonomy(self):     #recupere le temps d'autonomie du drone
         pass
@@ -42,10 +47,10 @@ class IODeliv:
     def __init__(self):
         pass
     
-    def get_etat_mission(self):
+    def get_etat_mission(Zone, Drone):
         if Drone.statut==1:
             print("Mission en cours dans la zone : ", Zone.num_zone)
-        if Zone.delivrer==0:
+        if Zone.deliver==0:
             #print("Mission partiellement achevee dans la zone : ", Zone.num_zone)
             print("Zone {} n'est pas livrée, population restante {} pax.".format(Zone.num_zone,Zone.population))
         if Zone.deliver==1:
@@ -61,16 +66,16 @@ class Operateur_drone:
         pass
 
 
-
+@icontract.require(lambda population: population >= 0)
 class Zone:
     num_zone:int
-    population : int #nombre de personnes sur zone à livrer
+    population:int #pint.Quantity=0*ureg.dimensionless #nombre de personnes sur zone à livrer
     delivrer: bool #livre=1 non-livre=0
     prio:int #scale from 1 to 10
     x:float  #coordonnee Zone
     y:float
 
-    def __init__(self, num_zone:int, population : int, delivrer: bool, prio:int,x:float,y:float):
+    def __init__(self, num_zone:int, population:int, delivrer: bool, prio:int,x:float,y:float):
         self.num_zone=num_zone
         self.population=population
         self.delivrer=delivrer
@@ -79,34 +84,40 @@ class Zone:
         self.y = y
         delivrer=0
         pass
+class Livraison():
+    """@icontract.require(lambda population:population>=0)
+    @icontract.snapshot(lambda self: self.charge_utile, name='charge_utile')
+    @icontract.ensure(lambda OLD, self,charge_utile:OLD.charge_utile-Zone.population==charge_utile)""" #Ca ne marche pas :'(
+    def livraison_pastilles(Zone,Drone):
+        if Drone.charge_utile>=Zone.population:
+            Drone.charge_utile-=Zone.population
+            Zone.population=0
+            Zone.deliver=1
+        #print("Zone entièrement livrée")
+            print("Charge utile du drone apres livraison: ",Drone.charge_utile)
+        #print("deliver: ", Zone.deliver)
+        else:
+            Zone.deliver=0
+            Zone.population-=Drone.charge_utile
+            Drone.charge_utile=Zone.population-Drone.charge_utile
+        #print("Zone partiellement livrée")
+            print("population a livrer restante: ",Zone.population)
+        #print("deliver: ", Zone.deliver)
+        pass
 
-   #@icontract.require(lambda population: population >= 0)
-
-def livraison_pastilles(Zone,Drone):
-    if Drone.charge_utile>=Zone.population:
-        Zone.population==0
-        Drone.charge_utile-=Zone.population
-        Zone.deliver=1
-        print("Zone entièrement livrée")
-        print("Charge utile du drone apres livraison: ",Drone.charge_utile)
-        print("deliver: ", Zone.deliver)
-    else:
-        Zone.deliver=0
-        Zone.population-=Drone.charge_utile
-        Drone.charge_utile=Zone.population-Drone.charge_utile
-        print("Zone partiellement livrée")
-        print("population a livrer restante: ",Zone.population)
-        print("deliver: ", Zone.deliver)
-    pass
 
 
-d=Drone(1, 15, 50,0,8,6)
-print(d.charge_utile)
+def main():
+    d=Drone(1, 15, 50,0,8,6)
+    print("Charge utile : ",d.charge_utile)
 
-z=Zone(3, 10, 0, 5,3,5)
-print(z.population)
+    z=Zone(3, 10, 0, 5,3,5)
+    print("Population initiale sur zone {} : {} ".format(z.num_zone,z.population))
 
-livraison_pastilles(z,d)
+    Livraison.livraison_pastilles(z,d)
+    IODeliv.get_etat_mission(z,d)
+
+main()
 
 
 
